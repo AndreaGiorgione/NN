@@ -35,7 +35,8 @@ class OutputUnit:
         Arguments
         ----------
         input_data : float or arraylike
-            Input from the (outèput of) previous layer.
+            Input from the (output of) previous layer
+            (the dimension must be equal to the fan_in).
 
         Return
         self.output : float
@@ -96,7 +97,8 @@ class HiddenUnit:
         Arguments
         ----------
         input_data : float or arraylike
-            Input from the (output of) previous layer.
+            Input from the (output of) previous layer
+            (the dimension must be equal to the fan_in).
 
         Return
         self.output : float
@@ -130,3 +132,58 @@ class HiddenUnit:
         deltaw = delta * self.input
         self.weights = self.weights + learning_rate * deltaw
         return delta
+
+def sigmoid(net):
+    """Activation function for classification
+    purposes with output range [0, 1].
+
+    Arguments
+    ----------
+    net : float
+        Computation rsult of linera combination of inputs
+        with the weights of the units.
+    """
+    return 1. / (1 +  np.exp(-net))
+
+def sigmoid_prime(net):
+    """Activation function derivative.
+
+    Arguments
+    ----------
+    net : float
+        Computation rsult of linera combination of inputs
+        with the weights of the units.
+    """
+    return sigmoid(net) * (1 - sigmoid(net))
+
+if __name__ == "__main__":
+    # Checking the output unit.
+    TARGET = 0.9
+    ETA = 0.2
+    myoutunit = OutputUnit(5, sigmoid, sigmoid_prime)
+    print(f'Weights at the initailization: {myoutunit.weights}')
+    print(f'A value for activation function: {myoutunit.activation(-1)}')
+    print(f'A value for activation function: {myoutunit.activation(0)}')
+    print(f'A value for activation function: {myoutunit.activation(1)}')
+    print(f'A value for activation function derivative: {myoutunit.derivative(-1)}')
+    print(f'A value for activation function derivative: {myoutunit.derivative(0)}')
+    print(f'A value for activation function derivative: {myoutunit.derivative(1)}')
+    input_array = np.array([1, 2, 3, 4, 5])
+    computation = myoutunit.forward_propagation(input_array)
+    print(f'Result for the computation of the unit: {computation}')
+    error = TARGET - computation
+    delta_unit = myoutunit.backward_propagation(error, ETA)
+    new_weights = myoutunit.weights
+    print(f'Computed delta for weight correction: {delta_unit}')
+    print(f'Weights aftr training: {new_weights} \n')
+    # checking the hidden unit.
+    myhiddenunit = HiddenUnit(5, sigmoid, sigmoid_prime)
+    print(f'Weights at the initailization: {myhiddenunit.weights}')
+    computation = myhiddenunit.forward_propagation(input_array)
+    print(f'Result for the computation of the unit: {computation}')
+    w_kj = np.random.uniform(-1, 1, 5)
+    delta_k = np.random.uniform(-0.5, 0.5, 5)
+    delta_unit = myhiddenunit.backward_propagation(w_kj, delta_k, ETA)
+    new_weights = myhiddenunit.weights
+    print(f'Computed delta for weight correction: {delta_unit}')
+    print(f'Weights aftr training: {new_weights}')
